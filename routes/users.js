@@ -11,12 +11,21 @@ router.get('/', function (req, res, next) {
 });
 
 router.post('/signup', (req, res) => {
-    User.register(new User({ username: req.body.username }), req.body.password, (err) => {
+    User.register(new User({ username: req.body.username }), req.body.password, (err, user) => {
         if (err) {
             res.status(500).json({ err: err });
         } else {
-            passport.authenticate('local')(req, res, () => {
-                res.status(200).json({ success: true, status: 'Registration Successful!' });
+            if (req.body.firstname) {
+                user.firstname = req.body.firstname;
+            }
+            if (req.body.lastname) {
+                user.lastname = req.body.lastname;
+            }
+            user.save((err) => {
+                if (err) res.status(500).json({ err: err });
+                passport.authenticate('local')(req, res, () => {
+                    res.status(200).json({ success: true, status: 'Registration Successful!' });
+                });
             });
         }
     });
