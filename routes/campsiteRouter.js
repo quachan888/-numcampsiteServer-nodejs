@@ -135,6 +135,7 @@ campsiteRouter
         const { campsiteId, commentId } = req.params;
         Campsite.findById(campsiteId).then((campsite) => {
             if (campsite && campsite.comments.id(commentId)) {
+                // if ((campsite.comments.id(commentId).author._id).equals(req.user._id)) {
                 if (campsite.comments.id(commentId).author.equals(req.user._id)) {
                     if (req.body.rating) campsite.comments.id(commentId).rating = req.body.rating;
                     if (req.body.text) campsite.comments.id(commentId).text = req.body.text;
