@@ -9,7 +9,6 @@ campsiteRouter
     .route('/')
     .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
     .get(cors.cors, (req, res, next) => {
-        console.log(req.user);
         Campsite.find()
             .populate('comments.author')
             .then((campsite) => res.status(200).json(campsite))
@@ -32,12 +31,12 @@ campsiteRouter
 campsiteRouter
     .route('/:campsiteId')
     .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
-    .get(cors.cors, (req, res, next) =>
+    .get(cors.cors, (req, res, next) => {
         Campsite.findById(req.params.campsiteId)
             .populate('comments.author')
             .then((campsite) => res.status(200).json(campsite))
-            .catch((err) => next(err))
-    )
+            .catch((err) => next(err));
+    })
     .post(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res) =>
         res.status(403).end(`POST operation not supported on /campsites/${req.params.campsiteId}`)
     )
