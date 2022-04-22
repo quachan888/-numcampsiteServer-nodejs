@@ -89,7 +89,7 @@ favoriteRouter
                         .then((favorite) => res.status(200).json(favorite))
                         .catch((err) => next(err));
                 } else {
-                    res.end(`There are no favorite for campsiteID: ${req.params.campsiteId} to delete!`);
+                    res.end(`There are no favorite for campsiteID: ${req.params.campsiteId} to delete! `);
                 }
             }
         })
