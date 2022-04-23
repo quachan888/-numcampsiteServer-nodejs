@@ -1,7 +1,5 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const Campsite = require('./campsite');
-const User = require('./user');
 
 const favoriteSchema = new Schema(
     {

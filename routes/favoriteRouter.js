@@ -1,7 +1,7 @@
 const express = require('express');
 const Favorite = require('../models/favorites');
-const Campsite = require('../models/campsite');
-const User = require('../models/user');
+// const Campsite = require('../models/campsite');
+// const User = require('../models/user');
 
 const authenticate = require('../authenticate');
 const cors = require('./cors');
@@ -19,27 +19,39 @@ favoriteRouter
             .catch((err) => next(err));
     })
     .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-        Favorite.findOne({ user: req.user._id }).then((user) => {
-            if (user) {
-                req.body.forEach((campsiteId, index) => {
-                    if (!user.campsites.includes(campsiteId._id)) {
-                        user.campsites.push(campsiteId);
-                    }
-                });
-                user.save()
-                    .then((favorite) => res.status(200).json(favorite))
-                    .catch((err) => next(err));
-            } else {
-                Favorite.create({
-                    user: req.user._id,
-                    campsites: req.body
-                })
-                    .then((favorite) => {
-                        res.status(200).json(favorite);
-                    })
-                    .catch((err) => next(err));
-            }
-        });
+        Favorite.findOne({ user: req.user._id })
+            .then((favorite) => {
+                if (favorite) {
+                    req.body.forEach((fav) => {
+                        if (!favorite.campsites.includes(fav._id)) {
+                            favorite.campsites.push(fav._id);
+                        }
+                    });
+                    favorite
+                        .save()
+                        .then((favorite) => res.status(200).json(favorite))
+                        .catch((err) => next(err));
+                } else {
+                    Favorite.create({ user: req.user._id })
+                        .then((favorite) => {
+                            req.body.forEach((fav) => {
+                                if (!favorite.campsites.includes(fav._id)) {
+                                    favorite.campsites.push(fav._id);
+                                }
+                            });
+                            favorite
+                                .save()
+                                .then((favorite) => res.status(200).json(favorite))
+                                .catch((err) => next(err));
+                        })
+                        .catch((err) => {
+                            next(err);
+                        });
+                }
+            })
+            .catch((err) => {
+                next(err);
+            });
     })
     .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) =>
         Favorite.findOneAndDelete({ user: req.user._id })
@@ -58,27 +70,28 @@ favoriteRouter
     .route('/:campsiteId')
     .options(cors.corsWithOptions, (req, res) => res.sendStatus(200))
     .post(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) => {
-        Favorite.findOne({ user: req.user._id }).then((user) => {
-            if (user) {
-                if (!user.campsites.includes(req.params.campsiteId)) {
-                    user.campsites.push(req.params.campsiteId);
-                    user.save()
+        Favorite.findOne({ user: req.user._id })
+            .then((favorite) => {
+                if (favorite) {
+                    if (!favorite.campsites.includes(req.params.campsiteId)) {
+                        favorite.campsites.push(req.params.campsiteId);
+                        favorite
+                            .save()
+                            .then((favorite) => res.status(200).json(favorite))
+                            .catch((err) => next(err));
+                    } else {
+                        res.end('That campsite is already in the list of favorites!');
+                    }
+                } else {
+                    Favorite.create({
+                        user: req.user._id,
+                        campsites: [req.params.campsiteId]
+                    })
                         .then((favorite) => res.status(200).json(favorite))
                         .catch((err) => next(err));
-                } else {
-                    res.end('That campsite is already in the list of favorites!');
                 }
-            } else {
-                Favorite.create({
-                    user: req.user._id,
-                    campsites: [req.params.campsiteId]
-                })
-                    .then((favorite) => {
-                        res.status(200).json(favorite);
-                    })
-                    .catch((err) => next(err));
-            }
-        });
+            })
+            .catch((err) => console.log(err));
     })
     .delete(cors.corsWithOptions, authenticate.verifyUser, (req, res, next) =>
         Favorite.findOne({ user: req.user._id }).then((user) => {
